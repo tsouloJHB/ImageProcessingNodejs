@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>File Upload Example</title>
+
 </head>
 <body>
     <a href="javascript:history.back()">Back</a>
@@ -16,7 +17,8 @@
     <p><b>Original text </b></p>
     <p><%= text %> </p>
     
-
-    <img width="50%" src="<%= image %> "/>
+    <% if (image != "") { %>
+      <img width="50%" src="<%= image %> "/>
+    <% } %>     
 </body>
 </html>

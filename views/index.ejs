@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>File Upload Example</title>
+  <head>
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  
+  <script>
+    function changeText() {
+      const div = document.getElementById('myDiv');
+      div.innerHTML = 'Processing request';
+    }
+    function changeText1() {
+      const div = document.getElementById('myDiv1');
+      div.innerHTML = 'Processing request';
+    }
+    function changeText3() {
+      const div = document.getElementById('myDiv3');
+      div.innerHTML = 'Processing request';
+    }
+   
+    function loadImage(event) {
+      const img = document.getElementById('image');
+      img.src = URL.createObjectURL(event.target.files[0]);
+     
+    }
+    function loadImage1(event) {
+      const img = document.getElementById('image1');
+      img.src = URL.createObjectURL(event.target.files[0]);
+     
+    }
+
+
+  </script>
+</head>
+<body>
+  <h3>Process image</h3>
+  <% if (error) { %>
+    <p><%= error%></p>
+    <% } %>     
+
+<div class="column1">
+  <!-- Upload Area -->
+<div id="uploadArea" class="upload-area">
+  <!-- Header -->
+  <div class="upload-area__hea\der">
+    <h1 class="upload-area__title">V2</h1>
+    <p class="upload-area__paragraph">
+      File should be an image
+    </p>
+  </div>
+  <!-- End Header -->
+
+  <!-- Drop Zoon -->
+  <form action="/upload" method="post" enctype="multipart/form-data">
+  <div id="dropZoon" class="upload-area__drop-zoon drop-zoon">
+  
+    <p class="drop-zoon__paragraph">Click to browse</p>
+    <input type="hidden" name="version" value="v2"/>
+    <input type="file"  name="file" onchange="loadImage(event)" id="fileInput" class="drop-zoon__file-input" accept="image/*">
+  </div>
+  <!-- End Drop Zoon -->
+
+  <input type="submit" value="Upload" onclick="changeText()">
+  <img id="image" width="300px">
+  <div id="myDiv"></div>
+  </form>
+  </div>
+  
+  <!-- End File Details -->
+
+
+<div id="uploadArea" class="upload-area">
+  <!-- Header -->
+  <div class="upload-area__header">
+    <h1 class="upload-area__title">V1</h1>
+    <p class="upload-area__paragraph">
+      File should be an image
+    </p>
+  </div>
+  <!-- End Header -->
+
+  <!-- Drop Zoon -->
+  <form action="/upload" method="post" enctype="multipart/form-data">
+  <div id="dropZoon" class="upload-area__drop-zoon drop-zoon">
+  
+    <p class="drop-zoon__paragraph">Click to browse</p>
+    <input type="hidden" name="version" value="v1"/>
+    <input type="file"  name="file" onchange="loadImage1(event)" id="fileInput" class="drop-zoon__file-input" accept="image/*">
+  </div>
+  <!-- End Drop Zoon -->
+
+  <input type="submit" value="Upload" onclick="changeText1()">
+  <img id="image1" width="300px">
+  <div id="myDiv1"></div>
+  </form>
+  </div>
+  
+  <div id="uploadArea" class="upload-area">
+    <!-- Header -->
+    <div class="upload-area__header">
+      <h1 class="upload-area__title">V1</h1>
+      <p class="upload-area__paragraph">
+        File should be an PDF
+      </p>
+    </div>
+    <!-- End Header -->
+  
+    <!-- Drop Zoon -->
+    <form action="/upload-pdf" method="post" enctype="multipart/form-data">
+    <div id="dropZoon" class="upload-area__drop-zoon drop-zoon">
+    
+      <p class="drop-zoon__paragraph">Click to browse</p>
+      <input type="hidden" name="version" value="v1"/>
+      <input type="file"  name="pdf"  id="fileInput" class="drop-zoon__file-input" >
+    </div>
+    <!-- End Drop Zoon -->
+  
+    <input type="submit" value="Extract text" onclick="changeText3()">
+  
+    <div id="myDiv3"></div>
+    </form>
+    </div>
+  <!-- End File Details -->
+</div>
+</div>
+</div>
+
+
+   <!-- <h4>version 2</h4> 
+  <form action="/upload" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" onchange="loadImage(event)">
+    <img id="image" width="300px">
+    <input type="hidden" name="version" value="v2"/>
+    <br><br>
+    <input type="submit" value="Upload" onclick="changeText()">
+  </form>
+  <div id="myDiv"></div> -->
+
+  <!-- <h4>version 1</h4> 
+  <form action="/upload" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" onchange="loadImage(event)">
+    <img id="image" width="300px">
+    <input type="hidden" name="version" value="v2"/>
+    <br><br>
+    <input type="submit" value="Upload" onclick="changeText()">
+  </form>
+  <div id="myDiv"></div> -->
+
+
+  <!-- <h3>Process pdf</h3> -->
+
+  
+  <!-- <form action="/upload-pdf" method="post" enctype="multipart/form-data">
+    <input type="file" name="pdf">
+    <input type="hidden" name="version" value="v1"/>
+    <button type="submit">Extract Text</button>
+  </form> -->
+</body>
+</html>

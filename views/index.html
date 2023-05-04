@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>File Upload Example</title>
+
+  <script>
+    function changeText() {
+      const div = document.getElementById('myDiv');
+      div.innerHTML = 'Processing request';
+    }
+   
+    function loadImage(event) {
+      const img = document.getElementById('image');
+      img.src = URL.createObjectURL(event.target.files[0]);
+     
+    }
+
+  </script>
+</head>
+<body>
+  <h1>File Upload Example</h1>
+  <form action="/upload" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" onchange="loadImage(event)">
+    <img id="image" width="300px">
+    <input type="hidden" name="version" value="v2"/>
+    <br><br>
+    <input type="submit" value="Upload" onclick="changeText()">
+  </form>
+  <div id="myDiv"></div>
+
+  <hr>
+  <h3>pdf</h3>
+  <form action="/upload-pdf" method="post" enctype="multipart/form-data">
+    <input type="file" name="pdf">
+    <input type="hidden" name="version" value="v1"/>
+    <button type="submit">Extract Text</button>
+  </form>
+</body>
+</html>

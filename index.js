@@ -39,7 +39,7 @@ app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.render('index.ejs',{error:""});
 });
 
 
@@ -48,58 +48,135 @@ app.get("/", (req, res) => {
 //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
 app.post("/upload", upload.single("file"), async (req, res) => {
   const imagePath = req.file.path
-  // const name = req.file.path+"."+req.file.originalname.split(".")[1];
-  console.log(imagePath);
+  let apiImageProcessingResults = ""
+  let tesseractImageProcessingResults = "";
   try {
-    const result = await Tesseract.recognize(imagePath, "eng", { logger: console.log });
-   
+    //process image
+    if(req.body.version == "v1"){
+      //result
+      tesseractImageProcessingResults = await tesseractImageProcessing(imagePath);
+      if( tesseractImageProcessingResults == ""){
+        res.status(500).render('index', { error: 'Error processing image. try version 2' });
+        return;
+      }
+      
+    }else if(req.body.version == "v2"){
+      apiImageProcessingResults  = await apiImageProcessing(imagePath);
+      if( apiImageProcessingResults== "" ||  apiImageProcessingResults == undefined){
+        res.status(500).render('index', { error: 'Error processing image. try version 1' });
+        
+        return;
+      }
+    }else{
+      res.status(500).send("No version specified");
+      return;
+    }
+
+    const text = apiImageProcessingResults != "" ? apiImageProcessingResults : tesseractImageProcessingResults.data.text;
+
+    // create summary 
     
-    const wordCount = result.data.text.split(' ').length;
-    const averageRowCount = 30;
-    const rows = Math.round((wordCount / averageRowCount) /3);
-    
-
-    let Summarizerv = new SummarizerManager(result.data.text,rows);
-    let summary = Summarizerv.getSummaryByFrequency().summary;
-
-    // const formdata = new FormData();
-    // formdata.append("key", "ff58d8193d330227bc1cc31ca0f01be6");
-    // formdata.append("txt", result.data.text);
-    // formdata.append("sentences", rows);
-
-    // const requestOptions = {
-    //   method: 'POST',
-    //   body: formdata,
-    //   redirect: 'follow'
-    // };
-
-    // const response = await axios.post("https://api.meaningcloud.com/summarization-1.0", formdata);
-    // console.log(response.data);
-    
-
-    //let fin = "Summary: "+summary+" <br/> <br/>: Summary 2 "+response.data.summary +"<br/><br/>Text: "+result.data.text;
-    const summary2  = "This is the second summary"
+    const rows= await summaryRows(text); 
+    const summary2  = await  summarizerSummaryProcessing(text,rows);
     const image =  imagePath.split("\\")[1];
-    const text = result.data.text;
-    console.log(image)
-  //res.send(fin);
-  res.render('upload', { summary ,summary2,text,image});
+    const summary = await apiSummaryProcessing(text,rows);
+
+    res.render('upload', { summary ,summary2,text,image});
+      
+
   } catch (error) {
     console.log(error);
-    res.status(500).send("Error processing image.");
+     res.render('upload', { summary, summary2, text, image });
+     res.status(500).render('index', { error: 'Error processing image' });
+
   }
 });
 
-app.post('/upload-pdf', upload.single('pdf'), (req, res) => {
+const mergeTexts =  async (jsonObj) => {
+  let mergedText = '';
+
+  for (const item of jsonObj) {
+    mergedText += item.text + ' ';
+  }
+
+  return mergedText.trim();
+}
+const apiImageProcessing = async (imagePath) =>{
+  try {
+    const imageData = new FormData();
+    imageData.append('image', fs.createReadStream(imagePath));
+
+    const response = await axios.post('https://api.api-ninjas.com/v1/imagetotext', imageData, {
+      headers: {
+        ...imageData.getHeaders(),
+        'X-Api-Key': 'skqX0n69cDV5Tpfx2n6xHQ==8WBkO2y0KCX0Bdbt'
+      }
+    });
+    const summaryJson = await mergeTexts(response.data)
+    return summaryJson
+  } catch (error) {
+    return "";
+  }
+
+}
+
+const tesseractImageProcessing = async (imagePath) =>{
+  try {
+    const response = Tesseract.recognize(imagePath, "eng", { logger: console.log });
+    return response;
+  } catch (error) {
+    return "";
+  }
+}
+
+const apiSummaryProcessing = async (text,rows) =>{
+    try {
+      //https://www.meaningcloud.com/developer/    credits 20000
+      const formdata = new FormData();
+      formdata.append("key", "ff58d8193d330227bc1cc31ca0f01be6");
+      formdata.append("txt", text);
+      formdata.append("sentences", rows);
+
+      const response = await axios.post("https://api.meaningcloud.com/summarization-1.0", formdata);
+      return response.data.summary
+
+    } catch (error) {
+      return false
+    }
+}
+
+const summarizerSummaryProcessing = async (text,rows) =>{
+  
+   try {
+     let Summarizer = new SummarizerManager(text,rows);
+     let summary = Summarizer.getSummaryByFrequency().summary;
+     return summary
+   } catch (error) {
+    return ""
+   }
+
+}
+
+
+const summaryRows = (text) =>{
+    const wordCount = text.split(' ').length;
+    const averageRowCount = 30;
+    const rows = Math.round((wordCount / averageRowCount) /3);
+
+    return rows
+}
+
+app.post('/upload-pdf', upload.single('pdf'), async(req, res) => {
     const pdfPath = req.file.path;
     const dataBuffer = fs.readFileSync(pdfPath);
-  
-    pdf(dataBuffer).then(function(data) {
-      const extractedText = data.text;
-      let Summarizer = new SummarizerManager( extractedText,3);
-      let summary = Summarizer.getSummaryByFrequency().summary;
-      res.send(`<pre>${summary}</pre>`);
-    });
+
+    const data = await pdf(dataBuffer);
+    const text = data.text;
+    const rows= summaryRows(text); 
+    const summary = await apiSummaryProcessing(text,rows);
+    const summary2  = await summarizerSummaryProcessing(text,rows);
+    const image = "";  
+    res.render('upload', { summary, summary2, text, image });
   });
 
 app.listen(3000, () => {
